@@ -26,8 +26,9 @@ LAG_FEATURES = (
     [f"lag_{lag}" for lag in LAGS]
     + [f"rmean_{w}" for w in WINDOWS]
     + [f"rstd_{w}" for w in WINDOWS[:2]]
-    + ["rzero_28", "sku_mean_units"]
+    + ["rzero_28", "sku_mean_units", "dow_mean_8w", "dow_median_8w", "open_mean_28"]
 )
+DOW_LAGS = [HORIZON + 7 * k for k in range(8)]  # same weekday, 2..9 weeks back
 FEATURES = ["sku_code"] + CALENDAR + LAG_FEATURES
 CATEGORICAL = ["sku_code", "dow"]
 
@@ -81,4 +82,13 @@ def add_features(panel: pd.DataFrame, sku_codes: dict[str, int]) -> pd.DataFrame
         lambda s: s.rolling(28, min_periods=1).mean()
     )
     df["sku_mean_units"] = gb.transform(lambda s: s.expanding().mean())
+
+    same_dow = np.column_stack([g.shift(lag).to_numpy() for lag in DOW_LAGS])
+    with np.errstate(all="ignore"):
+        df["dow_mean_8w"] = np.nanmean(same_dow, axis=1)
+        df["dow_median_8w"] = np.nanmedian(same_dow, axis=1)
+    # average over trading days only, so Saturday zeros don't drag the level down
+    open_units = base.where(df.groupby("sku", sort=False)["open"].shift(HORIZON) == 1)
+    df["open_mean_28"] = open_units.groupby(df["sku"], sort=False).transform(
+        lambda s: s.rolling(28, min_periods=1).mean())
     return df

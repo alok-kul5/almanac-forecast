@@ -5,7 +5,7 @@ from almanac.backtest import run_backtest, summarize
 from almanac.config import HORIZON
 from almanac.data import build_panel, clean_lines
 from almanac.drift import accuracy_status, psi
-from almanac.features import FEATURES, add_features, cap_outliers, sku_code_map
+from almanac.features import FEATURES, LAG_FEATURES, add_features, cap_outliers, sku_code_map
 from almanac.metrics import bias, coverage, wape
 from almanac.models import Forecaster, future_frame, moving_average, seasonal_naive
 
@@ -44,7 +44,8 @@ def test_features_never_see_the_forecast_window(panel):
     tampered.loc[tampered["date"] > cut, "units_capped"] = 9999
     b = add_features(tampered, codes)
     win = a["date"] > cut
-    lag_cols = [c for c in FEATURES if c.startswith(("lag_", "rmean_", "rstd_", "rzero", "sku_mean"))]
+    lag_cols = [c for c in FEATURES if c in LAG_FEATURES]
+    assert "dow_mean_8w" in lag_cols and "open_mean_28" in lag_cols
     pd.testing.assert_frame_equal(a.loc[win, lag_cols], b.loc[win, lag_cols])
 
 

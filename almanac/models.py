@@ -74,7 +74,9 @@ class Forecaster:
 
     def __init__(self, params: dict | None = None, num_rounds: int = NUM_ROUNDS,
                  quantiles: tuple[float, ...] = QUANTILES):
-        self.params = {**DEFAULT_PARAMS, **(params or {})}
+        params = {**DEFAULT_PARAMS, **(params or {})}
+        self.cap_q = params.pop("cap_q", 0.99)
+        self.params = params
         self.num_rounds = num_rounds
         self.quantiles = quantiles
         self.boosters: dict[str, lgb.Booster] = {}
@@ -88,7 +90,7 @@ class Forecaster:
 
     def fit(self, train: pd.DataFrame) -> Forecaster:
         self.sku_codes = sku_code_map(train)
-        _, self.caps = cap_outliers(train)
+        _, self.caps = cap_outliers(train, q=self.cap_q)
         self.train_end = train["date"].max()
         df = self._design(train)
         # skip a warm-up stretch where the rolling features are still filling in
@@ -133,7 +135,7 @@ class Forecaster:
         for name, b in self.boosters.items():
             b.save_model(str(path / f"{name}.txt"))
         meta = {
-            "params": self.params, "num_rounds": self.num_rounds, "quantiles": list(self.quantiles),
+            "params": {**self.params, "cap_q": self.cap_q}, "num_rounds": self.num_rounds, "quantiles": list(self.quantiles),
             "sku_codes": self.sku_codes, "caps": self.caps.to_dict(),
             "train_end": str(self.train_end.date()), "features": FEATURES,
         }
