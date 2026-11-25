@@ -29,6 +29,11 @@ def clean_lines(df: pd.DataFrame) -> pd.DataFrame:
 
 def build_panel(lines: pd.DataFrame, top_n: int = TOP_SKUS) -> pd.DataFrame:
     """Daily units per SKU for the top-N SKUs by selling days, zero-filled."""
+    # the export stops at lunchtime on its last day; a final day that ends before 15:00 is partial, so drop it
+    if "InvoiceDate" in lines and pd.to_datetime(lines["InvoiceDate"]).max().hour < 15:
+        lines = lines[lines["date"] < lines["date"].max()]
+    last = lines["date"].max()
+
     daily = (
         lines.groupby(["StockCode", "date"], as_index=False)["Quantity"].sum()
         .rename(columns={"StockCode": "sku", "Quantity": "units"})
@@ -36,8 +41,7 @@ def build_panel(lines: pd.DataFrame, top_n: int = TOP_SKUS) -> pd.DataFrame:
     active = daily.groupby("sku")["date"].nunique().sort_values(ascending=False, kind="stable")
     keep = sorted(active.head(top_n).index)
     daily = daily[daily["sku"].isin(keep)]
-
-    dates = pd.date_range(lines["date"].min(), lines["date"].max(), freq="D")
+    dates = pd.date_range(lines["date"].min(), last, freq="D")
     full = pd.MultiIndex.from_product([keep, dates], names=["sku", "date"])
     panel = daily.set_index(["sku", "date"])["units"].reindex(full, fill_value=0).reset_index()
     # the shop trades when anything sold that day; in production this comes from the trading calendar

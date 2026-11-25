@@ -115,3 +115,14 @@ def test_monitor_flags_a_demand_shift():
     assert rep["weeks"][0]["features_alerting"] < 3
     assert rep["weeks"][-1]["status"] == "alert"
     assert rep["recommendation"] == "retrain"
+
+
+def test_build_panel_drops_partial_last_day():
+    lines = pd.DataFrame({
+        "StockCode": ["11111"] * 3,
+        "Quantity": [3, 4, 50],
+        "InvoiceDate": ["2010-01-01 17:00", "2010-01-02 16:30", "2010-01-03 11:00"],
+    })
+    lines["date"] = pd.to_datetime(lines["InvoiceDate"]).dt.normalize()
+    p = build_panel(lines, top_n=5)
+    assert p["date"].max() == pd.Timestamp("2010-01-02")
