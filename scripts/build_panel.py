@@ -1,6 +1,11 @@
 """raw CSV -> data/processed/panel.parquet"""
-from almanac.config import PANEL, RAW_CSV
-from almanac.data import build_panel, clean_lines, load_raw
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
+from almanac.config import PANEL, RAW_CSV  # noqa: E402
+from almanac.data import build_panel, clean_lines, load_raw  # noqa: E402
 
 
 def main() -> None:
