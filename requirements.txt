@@ -1,0 +1,9 @@
+pandas==3.1.1
+numpy==2.4.6
+pyarrow==26.0.1
+lightgbm==4.7.0
+mlflow==3.18.0
+fastapi==0.165.0
+uvicorn==0.54.0
+pydantic==2.14.4
+openpyxl==3.1.5
