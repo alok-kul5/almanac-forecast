@@ -1,0 +1,373 @@
+{
+  "frozen_at": "2011-10-13",
+  "reference_window_days": 182,
+  "reference_wape": 0.7706,
+  "weeks": [
+    {
+      "week_start": "2011-10-14",
+      "units": 13592.0,
+      "forecast": 12588.6,
+      "wape": 0.763,
+      "baseline_wape": 0.8804,
+      "bias": -0.0738,
+      "accuracy_status": "ok",
+      "features_alerting": 0,
+      "top_drift": [
+        {
+          "feature": "rstd_7",
+          "psi": 0.0775,
+          "alert_at": 0.25,
+          "status": "ok"
+        },
+        {
+          "feature": "lag_21",
+          "psi": 0.0755,
+          "alert_at": 0.3694,
+          "status": "ok"
+        },
+        {
+          "feature": "lag_28",
+          "psi": 0.0556,
+          "alert_at": 0.3043,
+          "status": "ok"
+        },
+        {
+          "feature": "dow_mean_8w",
+          "psi": 0.0394,
+          "alert_at": 0.25,
+          "status": "ok"
+        },
+        {
+          "feature": "lag_14",
+          "psi": 0.0631,
+          "alert_at": 0.413,
+          "status": "ok"
+        }
+      ],
+      "status": "ok"
+    },
+    {
+      "week_start": "2011-10-21",
+      "units": 9541.0,
+      "forecast": 11674.9,
+      "wape": 0.9651,
+      "baseline_wape": 1.15,
+      "bias": 0.2237,
+      "accuracy_status": "alert",
+      "features_alerting": 0,
+      "top_drift": [
+        {
+          "feature": "rstd_7",
+          "psi": 0.085,
+          "alert_at": 0.25,
+          "status": "ok"
+        },
+        {
+          "feature": "lag_28",
+          "psi": 0.064,
+          "alert_at": 0.3043,
+          "status": "ok"
+        },
+        {
+          "feature": "lag_21",
+          "psi": 0.0669,
+          "alert_at": 0.3694,
+          "status": "ok"
+        },
+        {
+          "feature": "dow_mean_8w",
+          "psi": 0.0352,
+          "alert_at": 0.25,
+          "status": "ok"
+        },
+        {
+          "feature": "dow_median_8w",
+          "psi": 0.0285,
+          "alert_at": 0.25,
+          "status": "ok"
+        }
+      ],
+      "status": "alert"
+    },
+    {
+      "week_start": "2011-10-28",
+      "units": 17795.0,
+      "forecast": 12371.1,
+      "wape": 0.7891,
+      "baseline_wape": 0.8029,
+      "bias": -0.3048,
+      "accuracy_status": "ok",
+      "features_alerting": 0,
+      "top_drift": [
+        {
+          "feature": "rstd_7",
+          "psi": 0.0504,
+          "alert_at": 0.25,
+          "status": "ok"
+        },
+        {
+          "feature": "lag_28",
+          "psi": 0.0529,
+          "alert_at": 0.3043,
+          "status": "ok"
+        },
+        {
+          "feature": "dow_median_8w",
+          "psi": 0.0419,
+          "alert_at": 0.25,
+          "status": "ok"
+        },
+        {
+          "feature": "dow_mean_8w",
+          "psi": 0.0256,
+          "alert_at": 0.25,
+          "status": "ok"
+        },
+        {
+          "feature": "rzero_28",
+          "psi": 0.5285,
+          "alert_at": 7.5009,
+          "status": "ok"
+        }
+      ],
+      "status": "ok"
+    },
+    {
+      "week_start": "2011-11-04",
+      "units": 20877.0,
+      "forecast": 13702.7,
+      "wape": 0.7099,
+      "baseline_wape": 0.7087,
+      "bias": -0.3436,
+      "accuracy_status": "ok",
+      "features_alerting": 0,
+      "top_drift": [
+        {
+          "feature": "rstd_7",
+          "psi": 0.0858,
+          "alert_at": 0.25,
+          "status": "ok"
+        },
+        {
+          "feature": "dow_median_8w",
+          "psi": 0.0501,
+          "alert_at": 0.25,
+          "status": "ok"
+        },
+        {
+          "feature": "dow_mean_8w",
+          "psi": 0.0363,
+          "alert_at": 0.25,
+          "status": "ok"
+        },
+        {
+          "feature": "rmean_7",
+          "psi": 0.0456,
+          "alert_at": 0.451,
+          "status": "ok"
+        },
+        {
+          "feature": "lag_14",
+          "psi": 0.0409,
+          "alert_at": 0.413,
+          "status": "ok"
+        }
+      ],
+      "status": "ok"
+    },
+    {
+      "week_start": "2011-11-11",
+      "units": 20997.0,
+      "forecast": 14618.0,
+      "wape": 0.6813,
+      "baseline_wape": 0.6985,
+      "bias": -0.3038,
+      "accuracy_status": "ok",
+      "features_alerting": 0,
+      "top_drift": [
+        {
+          "feature": "rstd_7",
+          "psi": 0.1252,
+          "alert_at": 0.25,
+          "status": "ok"
+        },
+        {
+          "feature": "dow_mean_8w",
+          "psi": 0.0415,
+          "alert_at": 0.25,
+          "status": "ok"
+        },
+        {
+          "feature": "dow_median_8w",
+          "psi": 0.0389,
+          "alert_at": 0.25,
+          "status": "ok"
+        },
+        {
+          "feature": "rmean_7",
+          "psi": 0.0674,
+          "alert_at": 0.451,
+          "status": "ok"
+        },
+        {
+          "feature": "lag_21",
+          "psi": 0.0398,
+          "alert_at": 0.3694,
+          "status": "ok"
+        }
+      ],
+      "status": "ok"
+    },
+    {
+      "week_start": "2011-11-18",
+      "units": 19240.0,
+      "forecast": 15120.1,
+      "wape": 0.6803,
+      "baseline_wape": 0.6286,
+      "bias": -0.2141,
+      "accuracy_status": "ok",
+      "features_alerting": 0,
+      "top_drift": [
+        {
+          "feature": "rstd_7",
+          "psi": 0.0735,
+          "alert_at": 0.25,
+          "status": "ok"
+        },
+        {
+          "feature": "dow_mean_8w",
+          "psi": 0.0564,
+          "alert_at": 0.25,
+          "status": "ok"
+        },
+        {
+          "feature": "rmean_7",
+          "psi": 0.0974,
+          "alert_at": 0.451,
+          "status": "ok"
+        },
+        {
+          "feature": "dow_median_8w",
+          "psi": 0.051,
+          "alert_at": 0.25,
+          "status": "ok"
+        },
+        {
+          "feature": "lag_14",
+          "psi": 0.0764,
+          "alert_at": 0.413,
+          "status": "ok"
+        }
+      ],
+      "status": "ok"
+    },
+    {
+      "week_start": "2011-11-25",
+      "units": 15679.0,
+      "forecast": 17045.2,
+      "wape": 0.7119,
+      "baseline_wape": 0.7836,
+      "bias": 0.0871,
+      "accuracy_status": "ok",
+      "features_alerting": 0,
+      "top_drift": [
+        {
+          "feature": "rmean_7",
+          "psi": 0.305,
+          "alert_at": 0.451,
+          "status": "warn"
+        },
+        {
+          "feature": "rstd_7",
+          "psi": 0.1233,
+          "alert_at": 0.25,
+          "status": "ok"
+        },
+        {
+          "feature": "lag_14",
+          "psi": 0.1882,
+          "alert_at": 0.413,
+          "status": "ok"
+        },
+        {
+          "feature": "dow_median_8w",
+          "psi": 0.075,
+          "alert_at": 0.25,
+          "status": "ok"
+        },
+        {
+          "feature": "dow_mean_8w",
+          "psi": 0.0687,
+          "alert_at": 0.25,
+          "status": "ok"
+        }
+      ],
+      "status": "ok"
+    },
+    {
+      "week_start": "2011-12-02",
+      "units": 19723.0,
+      "forecast": 22330.6,
+      "wape": 0.8703,
+      "baseline_wape": 0.7364,
+      "bias": 0.1322,
+      "accuracy_status": "warn",
+      "features_alerting": 2,
+      "top_drift": [
+        {
+          "feature": "rmean_7",
+          "psi": 0.4758,
+          "alert_at": 0.451,
+          "status": "alert"
+        },
+        {
+          "feature": "rstd_7",
+          "psi": 0.2618,
+          "alert_at": 0.25,
+          "status": "alert"
+        },
+        {
+          "feature": "lag_14",
+          "psi": 0.2272,
+          "alert_at": 0.413,
+          "status": "ok"
+        },
+        {
+          "feature": "lag_21",
+          "psi": 0.1839,
+          "alert_at": 0.3694,
+          "status": "ok"
+        },
+        {
+          "feature": "dow_median_8w",
+          "psi": 0.0959,
+          "alert_at": 0.25,
+          "status": "ok"
+        }
+      ],
+      "status": "warn"
+    }
+  ],
+  "latest_status": "warn",
+  "first_alert": "2011-10-21",
+  "recommendation": "keep",
+  "watched_features": [
+    "lag_14",
+    "lag_21",
+    "lag_28",
+    "rmean_7",
+    "dow_mean_8w",
+    "dow_median_8w",
+    "rstd_7",
+    "rzero_28"
+  ],
+  "calendar_features_not_watched": [
+    "dow",
+    "month",
+    "weekofyear",
+    "dayofyear",
+    "holiday",
+    "days_to_xmas",
+    "open"
+  ]
+}
