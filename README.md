@@ -7,7 +7,7 @@ Everything needed to keep a model useful after launch is included: rolling backt
 baselines, MLflow tracking, a registry that only promotes models that win, a FastAPI service, and drift
 monitoring that knows the difference between noise and a real shift.
 
-**Report:** https://alok-kul5.github.io/almanac-forecast/
+**Report:** `docs/index.html` (serve it with `python -m http.server -d docs` and open http://localhost:8000)
 
 [![ci](https://github.com/alok-kul5/almanac-forecast/actions/workflows/ci.yml/badge.svg)](https://github.com/alok-kul5/almanac-forecast/actions/workflows/ci.yml)
 
