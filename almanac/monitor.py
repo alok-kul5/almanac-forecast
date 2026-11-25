@@ -128,7 +128,7 @@ def main(argv=None) -> None:
         mlflow.set_tag("recommendation", report["recommendation"])
 
     REPORTS.mkdir(exist_ok=True)
-    (REPORTS / "monitoring.json").write_text(json.dumps(report, indent=2, default=_np))
+    (REPORTS / "monitoring.json").write_text(json.dumps(report, indent=2, default=_np, allow_nan=False))
     SITE_DATA.mkdir(parents=True, exist_ok=True)
     (SITE_DATA / "monitoring.json").write_text((REPORTS / "monitoring.json").read_text())
     for w in report["weeks"]:

@@ -58,6 +58,7 @@ def summarize(preds: pd.DataFrame) -> dict:
     out["lgbm_p10_p90_coverage"] = coverage(y, preds["q10"], preds["q90"])
     out["lgbm_vs_best_baseline"] = 1 - out["lgbm_wape"] / min(out["seasonal_naive_wape"], out["moving_avg_wape"])
     by_h = preds.groupby("h").apply(lambda d: wape(d["units"], d["yhat"]), include_groups=False)
-    out["wape_by_horizon"] = {int(k): float(v) for k, v in by_h.items()}
+    # NaN where a horizon only ever lands on closed days (no demand to score), stored as null
+    out["wape_by_horizon"] = {int(k): (None if np.isnan(v) else float(v)) for k, v in by_h.items()}
     out["n_rows"] = int(len(preds))
     return {k: (float(v) if isinstance(v, (np.floating, float)) else v) for k, v in out.items()}

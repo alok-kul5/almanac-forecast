@@ -97,7 +97,7 @@ def main(argv=None) -> None:
         "feature_importance": {k: round(float(v), 1) for k, v in imp.head(12).items()},
         "daily": daily_series(preds),
     }
-    (REPORTS / "backtest.json").write_text(json.dumps(report, indent=2, default=str))
+    (REPORTS / "backtest.json").write_text(json.dumps(report, indent=2, default=str, allow_nan=False))
     SITE_DATA.mkdir(parents=True, exist_ok=True)
     (SITE_DATA / "backtest.json").write_text((REPORTS / "backtest.json").read_text())
     print(f"registered {REGISTERED_MODEL} v{version} as {alias}; "

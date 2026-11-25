@@ -245,7 +245,7 @@ Promise.all([fetch("data/backtest.json").then(r => r.json()), fetch("data/monito
                {label: "28-day avg", data: bt.folds.map(f => f.moving_avg_wape), backgroundColor: "#c9c0ad", borderRadius: 4}]},
     options: {maintainAspectRatio: false, plugins: {legend: {labels: {boxWidth: 12}}}, scales: {y: {ticks: {callback: pct}}, x: {grid: {display: false}}}}});
 
-  const hz = Object.entries(s.wape_by_horizon);
+  const hz = Object.entries(s.wape_by_horizon).filter(([, v]) => v !== null);
   new Chart(document.getElementById("horizon"), {type: "line", data: {labels: hz.map(([h]) => "+" + h + "d"),
     datasets: [{label: "LightGBM WAPE", data: hz.map(([, v]) => v), borderColor: C.ink, backgroundColor: C.ink, tension: .3}]},
     options: {maintainAspectRatio: false, plugins: {legend: {display: false}}, scales: {y: {ticks: {callback: pct}}, x: {grid: {display: false}}}}});
