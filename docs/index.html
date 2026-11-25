@@ -1,0 +1,293 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Almanac · demand forecasting</title>
+<meta name="description" content="Daily SKU demand forecasts with rolling backtests, a gated model registry and drift monitoring.">
+<link rel="icon" href="brand/mark.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Hanken+Grotesk:wght@400;500;600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{
+  --ink:#16213a; --ink-2:#22304f; --paper:#f6f1e7; --card:#fffdf8; --line:#e4dccb;
+  --amber:#e3a52b; --amber-soft:#f3d79b; --rust:#c4532f; --sage:#5d8a6a; --muted:#6b6658; --text:#1e1c17;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--paper);color:var(--text);font:16px/1.55 "Hanken Grotesk",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+a{color:inherit}
+.wrap{max-width:1120px;margin:0 auto;padding:0 24px}
+@media (max-width:600px){.wrap{padding:0 16px}}
+
+/* curtain + hero */
+.curtain{position:fixed;inset:0;background:var(--ink);z-index:50;transform-origin:top;animation:fold 1.1s cubic-bezier(.77,0,.18,1) .35s forwards;pointer-events:none}
+.curtain span{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font:600 15px/1 "Hanken Grotesk";letter-spacing:.32em;text-transform:uppercase;color:var(--amber);animation:fadeout .4s ease .3s forwards}
+@keyframes fold{to{transform:scaleY(0)}}
+@keyframes fadeout{to{opacity:0}}
+header.hero{background:var(--ink);color:#f3eee2;padding:28px 0 72px;position:relative;overflow:hidden}
+header.hero::after{content:"";position:absolute;right:-12%;top:-30%;width:62%;aspect-ratio:1;border-radius:50%;
+  background:radial-gradient(circle at 40% 40%,rgba(227,165,43,.24),transparent 62%);pointer-events:none}
+nav{display:flex;justify-content:space-between;align-items:center;gap:16px;font-size:14px}
+nav .brand{display:flex;align-items:center;gap:10px;font-weight:600;letter-spacing:.02em}
+nav .brand img{width:28px;height:28px;border-radius:7px}
+nav .links{display:flex;gap:18px;opacity:.8}
+nav .links a{text-decoration:none}
+nav .links a:hover{opacity:1;text-decoration:underline}
+.hero-grid{display:grid;grid-template-columns:1.25fr 1fr;gap:48px;margin-top:64px;align-items:end;position:relative;z-index:1}
+@media (max-width:860px){.hero-grid{grid-template-columns:1fr;gap:28px;margin-top:40px}}
+.eyebrow{font-size:13px;letter-spacing:.2em;text-transform:uppercase;color:var(--amber)}
+h1{font:400 clamp(38px,6vw,68px)/1.02 Fraunces,serif;margin:14px 0 18px;letter-spacing:-.01em}
+h1 em{font-style:normal;color:var(--amber)}
+.lede{max-width:560px;color:#cfd3dc;font-size:18px}
+.figure{border-left:1px solid rgba(255,255,255,.16);padding-left:28px}
+@media (max-width:860px){.figure{border-left:0;padding-left:0;border-top:1px solid rgba(255,255,255,.16);padding-top:24px}}
+.big{font:400 clamp(72px,11vw,132px)/.9 Fraunces,serif;color:var(--amber);letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.big small{font-size:.38em;color:#f3eee2;margin-left:6px}
+.figure p{margin:12px 0 0;color:#cfd3dc;max-width:340px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:22px}
+.chip{border:1px solid rgba(255,255,255,.2);border-radius:999px;padding:5px 12px;font-size:13px;color:#e6e2d7}
+.reveal{opacity:0;transform:translateY(22px);transition:opacity .8s ease,transform .8s cubic-bezier(.2,.7,.2,1)}
+.reveal.in{opacity:1;transform:none}
+
+/* sections */
+section{padding:72px 0 8px}
+h2{font:400 clamp(28px,3.4vw,40px)/1.1 Fraunces,serif;margin:0 0 10px}
+.sub{color:var(--muted);max-width:720px;margin:0 0 28px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:22px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+@media (max-width:860px){.grid2,.grid3{grid-template-columns:1fr}}
+.stat .k{font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.12em}
+.stat .v{font:400 44px/1.1 Fraunces,serif;margin-top:6px;font-variant-numeric:tabular-nums}
+.stat .n{font-size:14px;color:var(--muted)}
+.chart{position:relative;height:340px}
+.chart.sm{height:260px}
+.toggle{display:inline-flex;background:#efe8d9;border-radius:999px;padding:4px;margin-bottom:14px;flex-wrap:wrap}
+.toggle button{border:0;background:transparent;font:500 14px "Hanken Grotesk";padding:7px 14px;border-radius:999px;cursor:pointer;color:var(--muted)}
+.toggle button.on{background:var(--ink);color:#fff}
+
+/* monitoring timeline */
+.weeks{display:grid;grid-template-columns:repeat(8,1fr);gap:10px}
+@media (max-width:860px){.weeks{grid-template-columns:repeat(4,1fr)}}
+.wk{border-radius:14px;padding:14px 12px;background:var(--card);border:1px solid var(--line);cursor:pointer;transition:transform .2s ease,box-shadow .2s ease;text-align:left;font:inherit;color:inherit}
+.wk:hover{transform:translateY(-3px);box-shadow:0 10px 24px -14px rgba(22,33,58,.4)}
+.wk.sel{outline:2px solid var(--ink)}
+.wk .d{font-size:12px;color:var(--muted)}
+.wk .w{font:400 26px/1.1 Fraunces,serif;margin:4px 0}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;vertical-align:middle}
+.ok{background:var(--sage)} .warn{background:var(--amber)} .alert{background:var(--rust)}
+.wk .s{font-size:13px;text-transform:capitalize}
+.drift-row{display:grid;grid-template-columns:140px 1fr 70px;gap:12px;align-items:center;font-size:14px;margin:9px 0}
+.bar{height:10px;border-radius:6px;background:#efe8d9;position:relative;overflow:hidden}
+.bar i{position:absolute;inset:0 auto 0 0;border-radius:6px;transition:width .6s cubic-bezier(.2,.7,.2,1)}
+.bar b{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--ink)}
+code,.mono{font-family:"JetBrains Mono",monospace;font-size:13px}
+
+/* pipeline */
+.pipe{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;counter-reset:s}
+@media (max-width:860px){.pipe{grid-template-columns:1fr 1fr}}
+.pipe div{background:var(--ink);color:#e9e5da;border-radius:14px;padding:16px;font-size:14px;position:relative}
+.pipe div::before{counter-increment:s;content:"0" counter(s);display:block;font:400 22px Fraunces,serif;color:var(--amber);margin-bottom:6px}
+.pipe b{display:block;color:#fff;margin-bottom:4px}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{text-align:right;padding:9px 10px;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums}
+th:first-child,td:first-child{text-align:left}
+th{font-weight:600;color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.08em}
+td.win{color:var(--sage);font-weight:600}
+.scroll{overflow-x:auto}
+footer{padding:64px 0 48px;color:var(--muted);font-size:14px}
+pre{background:var(--ink);color:#e9e5da;border-radius:14px;padding:18px;overflow-x:auto;font-size:13px;line-height:1.6}
+@media (prefers-reduced-motion:reduce){.curtain{display:none}.reveal{opacity:1;transform:none;transition:none}}
+</style>
+</head>
+<body>
+<div class="curtain" aria-hidden="true"><span>Almanac</span></div>
+
+<header class="hero">
+  <div class="wrap">
+    <nav>
+      <div class="brand"><img src="brand/mark.svg" alt="">Almanac</div>
+      <div class="links"><a href="#backtest">Backtest</a><a href="#monitor">Monitoring</a><a href="#run">Run it</a><a href="https://github.com/alok-kul5/almanac-forecast">GitHub</a></div>
+    </nav>
+    <div class="hero-grid">
+      <div class="reveal">
+        <div class="eyebrow">Demand forecasting · MLOps</div>
+        <h1>How many units will each product sell <em>in the next two weeks?</em></h1>
+        <p class="lede">A global LightGBM model forecasts 14 days of demand for 50 products of a UK online retailer, with P10–P90 bands. It's tested on 12 rolling backtests, versioned in an MLflow registry that only promotes models that beat the baselines, served over FastAPI and watched for drift.</p>
+        <div class="chips" id="chips"></div>
+      </div>
+      <div class="figure reveal" style="transition-delay:.15s">
+        <div class="big"><span id="heroFig">–</span><small>%</small></div>
+        <p id="heroNote">lower error than the best simple baseline over the 12 backtest folds.</p>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <section id="backtest">
+    <h2 class="reveal">Backtest: refit every two weeks, forecast the next 14 days</h2>
+    <p class="sub reveal">Each fold trains only on data before its cutoff. WAPE is total absolute error divided by total units, so it can be read as a percentage of demand. Every feature looks at least 14 days back, so one model covers the whole horizon with no leakage (a unit test checks this).</p>
+    <div class="grid3">
+      <div class="card stat reveal"><div class="k">LightGBM WAPE</div><div class="v" id="sLgbm">–</div><div class="n" id="sLgbmN"></div></div>
+      <div class="card stat reveal"><div class="k">28-day average</div><div class="v" id="sMa">–</div><div class="n">best simple baseline</div></div>
+      <div class="card stat reveal"><div class="k">P10–P90 coverage</div><div class="v" id="sCov">–</div><div class="n">share of actual days inside the band (aim 80%)</div></div>
+    </div>
+    <div class="card reveal" style="margin-top:20px">
+      <div class="toggle" id="seriesToggle">
+        <button class="on" data-s="yhat">LightGBM + band</button><button data-s="moving_avg">28-day average</button><button data-s="seasonal_naive">Last week</button>
+      </div>
+      <div class="chart"><canvas id="daily"></canvas></div>
+      <p class="sub" style="margin:10px 0 0;font-size:14px">Total units across all 50 SKUs per day, over every backtest window. Saturdays show as zero because the shop doesn't trade.</p>
+    </div>
+    <div class="grid2" style="margin-top:20px">
+      <div class="card reveal"><h3 style="margin:0 0 12px;font-weight:600">WAPE per fold</h3><div class="chart sm"><canvas id="folds"></canvas></div></div>
+      <div class="card reveal"><h3 style="margin:0 0 12px;font-weight:600">Error by days ahead</h3><div class="chart sm"><canvas id="horizon"></canvas></div></div>
+    </div>
+  </section>
+
+  <section id="monitor">
+    <h2 class="reveal">Monitoring: the last 8 weeks, replayed as if live</h2>
+    <p class="sub reveal" id="monSub">A model is frozen 8 weeks before the data ends. Each week we score its forecasts once actuals arrive, and compare that week's inputs against a 6-month reference window with PSI. Thresholds are calibrated on the reference window itself, so ordinary week-to-week noise doesn't raise alarms.</p>
+    <div class="weeks reveal" id="weeks"></div>
+    <div class="grid2" style="margin-top:20px">
+      <div class="card reveal"><h3 style="margin:0 0 12px;font-weight:600">Live error vs reference</h3><div class="chart sm"><canvas id="live"></canvas></div></div>
+      <div class="card reveal"><h3 style="margin:0 0 4px;font-weight:600" id="driftTitle">Input drift</h3><p class="sub" style="font-size:13px;margin:0 0 10px">PSI per feature; the black tick is that feature's alert threshold.</p><div id="drift"></div></div>
+    </div>
+  </section>
+
+  <section>
+    <h2 class="reveal">What the model leans on</h2>
+    <div class="grid2">
+      <div class="card reveal"><div class="chart"><canvas id="imp"></canvas></div></div>
+      <div class="card reveal scroll"><table id="foldTable"></table></div>
+    </div>
+  </section>
+
+  <section>
+    <h2 class="reveal">Pipeline</h2>
+    <div class="pipe reveal">
+      <div><b>Clean</b>Drop cancellations, returns and postage codes. Zero-fill a daily panel of 50 SKUs.</div>
+      <div><b>Features</b>Lags of 14 days or more, same-weekday means, a holiday calendar and outlier caps.</div>
+      <div><b>Backtest</b>12 rolling folds against two baselines. P10/P90 quantile models.</div>
+      <div><b>Registry</b>MLflow tracking. A new version is named <code>champion</code> only if it beats the best baseline.</div>
+      <div><b>Serve</b>FastAPI <code>/forecast</code> with validation and bands. Docker image built in CI.</div>
+      <div><b>Monitor</b>Live WAPE and calibrated PSI. An alert recommends a retrain.</div>
+    </div>
+  </section>
+
+  <section id="run">
+    <h2 class="reveal">Run it</h2>
+<pre class="reveal">python -m venv .venv &amp;&amp; .venv/Scripts/activate   # or source .venv/bin/activate
+pip install -r requirements-dev.txt
+python scripts/fetch_data.py       # UCI Online Retail II -> data/processed/panel.parquet
+python -m almanac.train            # backtest, train, log + register in MLflow
+python -m almanac.monitor          # 8-week drift replay
+uvicorn almanac.api:app            # POST /forecast  {"skus": ["85123A"], "horizon": 14}
+mlflow ui --backend-store-uri sqlite:///mlruns.db</pre>
+  </section>
+</main>
+
+<footer class="wrap">Data: <a href="https://archive.ics.uci.edu/dataset/502/online+retail+ii">Online Retail II</a>, UCI Machine Learning Repository (CC BY 4.0). Built by <a href="https://alok.is-a.dev">Alok Kulkarni</a> · <a href="https://github.com/alok-kul5/almanac-forecast">source</a></footer>
+
+<script>
+const C = {ink:"#16213a", amber:"#e3a52b", soft:"rgba(227,165,43,.25)", rust:"#c4532f", sage:"#5d8a6a", muted:"#6b6658", line:"#e4dccb"};
+Chart.defaults.font.family = '"Hanken Grotesk", system-ui, sans-serif';
+Chart.defaults.color = C.muted;
+Chart.defaults.borderColor = C.line;
+const pct = v => (v * 100).toFixed(1) + "%";
+
+const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); } }), {threshold: .12});
+document.querySelectorAll(".reveal").forEach(el => io.observe(el));
+
+function countUp(el, to, dur = 1400, dec = 0) {
+  const t0 = performance.now();
+  const step = t => { const k = Math.min(1, (t - t0) / dur); const e = 1 - Math.pow(1 - k, 3);
+    el.textContent = (to * e).toFixed(dec); if (k < 1) requestAnimationFrame(step); };
+  requestAnimationFrame(step);
+}
+
+Promise.all([fetch("data/backtest.json").then(r => r.json()), fetch("data/monitoring.json").then(r => r.json())])
+.then(([bt, mon]) => {
+  const s = bt.summary;
+  const best = Math.min(s.moving_avg_wape, s.seasonal_naive_wape);
+  setTimeout(() => countUp(document.getElementById("heroFig"), s.lgbm_vs_best_baseline * 100, 1500, 1), 900);
+  document.getElementById("sLgbm").textContent = pct(s.lgbm_wape);
+  document.getElementById("sLgbmN").textContent = `bias ${s.lgbm_bias >= 0 ? "+" : ""}${pct(s.lgbm_bias)} · ${s.n_rows.toLocaleString()} SKU-days`;
+  document.getElementById("sMa").textContent = pct(best);
+  document.getElementById("sCov").textContent = pct(s.lgbm_p10_p90_coverage);
+  const chips = [bt.model_version + " · " + bt.alias, bt.folds.length + " folds", "14-day horizon", "50 SKUs", "MLflow registry", "FastAPI"];
+  document.getElementById("chips").innerHTML = chips.map(c => `<span class="chip">${c}</span>`).join("");
+
+  // daily chart
+  const d = bt.daily, labels = d.map(r => r.date);
+  const ds = key => key === "yhat" ? [
+      {label: "P90", data: d.map(r => r.q90), borderWidth: 0, pointRadius: 0, backgroundColor: C.soft, fill: "+1"},
+      {label: "P10", data: d.map(r => r.q10), borderWidth: 0, pointRadius: 0, fill: false},
+      {label: "LightGBM", data: d.map(r => r.yhat), borderColor: C.amber, borderWidth: 2.2, pointRadius: 0, tension: .25},
+    ] : [{label: key === "moving_avg" ? "28-day average" : "Last week", data: d.map(r => r[key]), borderColor: C.rust, borderWidth: 2, pointRadius: 0, tension: .2}];
+  const actual = {label: "Actual", data: d.map(r => r.units), borderColor: C.ink, borderWidth: 1.4, pointRadius: 0, tension: .15};
+  const daily = new Chart(document.getElementById("daily"), {type: "line", data: {labels, datasets: [actual, ...ds("yhat")]},
+    options: {maintainAspectRatio: false, interaction: {mode: "index", intersect: false}, animation: {duration: 1200},
+      plugins: {legend: {labels: {filter: i => !["P10"].includes(i.text), boxWidth: 12}}},
+      scales: {x: {ticks: {maxTicksLimit: 8}, grid: {display: false}}, y: {beginAtZero: true}}}});
+  document.querySelectorAll("#seriesToggle button").forEach(b => b.onclick = () => {
+    document.querySelectorAll("#seriesToggle button").forEach(x => x.classList.toggle("on", x === b));
+    daily.data.datasets = [actual, ...ds(b.dataset.s)]; daily.update();
+  });
+
+  // folds
+  new Chart(document.getElementById("folds"), {type: "bar", data: {labels: bt.folds.map(f => f.cutoff.slice(5)),
+    datasets: [{label: "LightGBM", data: bt.folds.map(f => f.lgbm_wape), backgroundColor: C.amber, borderRadius: 4},
+               {label: "28-day avg", data: bt.folds.map(f => f.moving_avg_wape), backgroundColor: "#c9c0ad", borderRadius: 4}]},
+    options: {maintainAspectRatio: false, plugins: {legend: {labels: {boxWidth: 12}}}, scales: {y: {ticks: {callback: pct}}, x: {grid: {display: false}}}}});
+
+  const hz = Object.entries(s.wape_by_horizon);
+  new Chart(document.getElementById("horizon"), {type: "line", data: {labels: hz.map(([h]) => "+" + h + "d"),
+    datasets: [{label: "LightGBM WAPE", data: hz.map(([, v]) => v), borderColor: C.ink, backgroundColor: C.ink, tension: .3}]},
+    options: {maintainAspectRatio: false, plugins: {legend: {display: false}}, scales: {y: {ticks: {callback: pct}}, x: {grid: {display: false}}}}});
+
+  // importance
+  const imp = Object.entries(bt.feature_importance).reverse();
+  new Chart(document.getElementById("imp"), {type: "bar", data: {labels: imp.map(([k]) => k),
+    datasets: [{data: imp.map(([, v]) => v), backgroundColor: C.ink, borderRadius: 4}]},
+    options: {indexAxis: "y", maintainAspectRatio: false, plugins: {legend: {display: false}}, scales: {x: {ticks: {display: false}, grid: {display: false}}, y: {grid: {display: false}}}}});
+
+  const tb = document.getElementById("foldTable");
+  tb.innerHTML = "<tr><th>Cutoff</th><th>LightGBM</th><th>28-day avg</th><th>Last week</th></tr>" + bt.folds.map(f => {
+    const w = f.lgbm_wape <= Math.min(f.moving_avg_wape, f.seasonal_naive_wape);
+    return `<tr><td>${f.cutoff}</td><td class="${w ? "win" : ""}">${pct(f.lgbm_wape)}</td><td>${pct(f.moving_avg_wape)}</td><td>${pct(f.seasonal_naive_wape)}</td></tr>`;
+  }).join("");
+
+  // monitoring
+  const W = mon.weeks;
+  document.getElementById("monSub").textContent += ` Model frozen ${mon.frozen_at}; reference WAPE ${pct(mon.reference_wape)}.` +
+    (mon.first_alert ? ` First alert in the week of ${mon.first_alert}. Recommendation: ${mon.recommendation}.` : " No alerts.");
+  const weeks = document.getElementById("weeks");
+  weeks.innerHTML = W.map((w, i) => `<button class="wk" data-i="${i}"><div class="d">${w.week_start.slice(5)}</div><div class="w">${pct(w.wape)}</div><div class="s"><span class="dot ${w.status}"></span>${w.status}</div></button>`).join("");
+  const showDrift = i => {
+    const w = W[i];
+    weeks.querySelectorAll(".wk").forEach(b => b.classList.toggle("sel", +b.dataset.i === i));
+    document.getElementById("driftTitle").textContent = `Input drift, week of ${w.week_start}`;
+    const max = Math.max(...w.top_drift.map(x => Math.max(x.psi, x.alert_at))) * 1.1;
+    document.getElementById("drift").innerHTML = w.top_drift.map(x => `<div class="drift-row"><span class="mono">${x.feature}</span>
+      <div class="bar"><i class="${x.status}" style="width:${100 * x.psi / max}%"></i><b style="left:${100 * x.alert_at / max}%"></b></div>
+      <span class="mono" style="text-align:right">${x.psi.toFixed(2)}</span></div>`).join("") +
+      `<p style="font-size:13px;color:${C.muted};margin:12px 0 0">Accuracy: ${w.accuracy_status} · forecast ${Math.round(w.forecast).toLocaleString()} vs actual ${Math.round(w.units).toLocaleString()} units (bias ${pct(w.bias)})</p>`;
+  };
+  weeks.querySelectorAll(".wk").forEach(b => b.onclick = () => showDrift(+b.dataset.i));
+  showDrift(W.length - 1);
+  new Chart(document.getElementById("live"), {type: "line", data: {labels: W.map(w => w.week_start.slice(5)), datasets: [
+      {label: "Live WAPE", data: W.map(w => w.wape), borderColor: C.amber, backgroundColor: C.amber, tension: .3,
+       pointBackgroundColor: W.map(w => ({ok: C.sage, warn: C.amber, alert: C.rust})[w.status]), pointRadius: 5},
+      {label: "28-day avg", data: W.map(w => w.baseline_wape), borderColor: "#c9c0ad", borderDash: [4, 4], pointRadius: 0},
+      {label: "Alert line", data: W.map(() => mon.reference_wape * 1.25), borderColor: C.rust, borderWidth: 1, pointRadius: 0, borderDash: [2, 3]}]},
+    options: {maintainAspectRatio: false, plugins: {legend: {labels: {boxWidth: 12}}}, scales: {y: {ticks: {callback: pct}}, x: {grid: {display: false}}}}});
+})
+.catch(e => { document.getElementById("heroNote").textContent = "Couldn't load the report data (" + e.message + ")."; });
+</script>
+</body>
+</html>
