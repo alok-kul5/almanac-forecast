@@ -9,3 +9,4 @@ mlruns.db
 models/
 .pytest_cache/
 .ruff_cache/
+reports/
