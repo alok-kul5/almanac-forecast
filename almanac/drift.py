@@ -31,12 +31,39 @@ def level(value: float, warn: float, alert: float) -> str:
     return "alert" if value >= alert else "warn" if value >= warn else "ok"
 
 
-def feature_drift(ref: pd.DataFrame, cur: pd.DataFrame, features: list[str]) -> list[dict]:
+def calibrate_thresholds(ref: pd.DataFrame, features: list[str], window_days: int = 14,
+                         step_days: int = 7) -> dict[str, tuple[float, float]]:
+    """Per-feature (warn, alert) PSI thresholds from the reference window itself.
+
+    Smooth time-series features give a high PSI for any short window even when
+    nothing changed, so a fixed 0.25 cut-off cries wolf. We slide a window of the
+    same length through the reference period, take the PSI of each slice against
+    the whole reference, and alert only when live PSI clearly exceeds that noise.
+    """
+    start, end = ref["date"].min(), ref["date"].max()
+    slices = []
+    t = start + pd.Timedelta(days=window_days)
+    while t <= end:
+        slices.append(ref[(ref["date"] > t - pd.Timedelta(days=window_days)) & (ref["date"] <= t)])
+        t += pd.Timedelta(days=step_days)
+    out = {}
+    for f in features:
+        null = np.array([psi(ref[f], s[f]) for s in slices])
+        null = null[~np.isnan(null)]
+        p95 = float(np.quantile(null, 0.95)) if len(null) else PSI_WARN
+        out[f] = (max(PSI_WARN, p95), max(PSI_ALERT, 1.5 * p95))
+    return out
+
+
+def feature_drift(ref: pd.DataFrame, cur: pd.DataFrame, features: list[str],
+                  thresholds: dict[str, tuple[float, float]] | None = None) -> list[dict]:
     out = []
     for f in features:
         v = psi(ref[f], cur[f])
-        out.append({"feature": f, "psi": round(v, 4), "status": level(v, PSI_WARN, PSI_ALERT)})
-    return sorted(out, key=lambda d: -np.nan_to_num(d["psi"]))
+        warn, alert = (thresholds or {}).get(f, (PSI_WARN, PSI_ALERT))
+        out.append({"feature": f, "psi": round(v, 4), "alert_at": round(alert, 4),
+                    "status": level(v, warn, alert)})
+    return sorted(out, key=lambda d: -np.nan_to_num(d["psi"] / d["alert_at"]))
 
 
 def accuracy_status(live_wape: float, backtest_wape: float) -> str:

@@ -75,7 +75,8 @@ class Forecaster:
     def __init__(self, params: dict | None = None, num_rounds: int = NUM_ROUNDS,
                  quantiles: tuple[float, ...] = QUANTILES):
         params = {**DEFAULT_PARAMS, **(params or {})}
-        self.cap_q = params.pop("cap_q", 0.99)
+        # 0.95 picked in the objective sweep (see README): biggest WAPE gain without starving stock
+        self.cap_q = params.pop("cap_q", 0.95)
         self.params = params
         self.num_rounds = num_rounds
         self.quantiles = quantiles
@@ -107,8 +108,8 @@ class Forecaster:
 
     def predict(self, history: pd.DataFrame, future: pd.DataFrame) -> pd.DataFrame:
         """Forecast `future` rows (sku, date, open) using `history` up to its last date."""
-        both = pd.concat([history[["sku", "date", "open", "units"]], future[["sku", "date", "open", "units"]]],
-                         ignore_index=True)
+        cols = ["sku", "date", "open", "units"]
+        both = pd.concat([history[cols], future[cols]], ignore_index=True)
         df = self._design(both)
         df = df.merge(future[["sku", "date"]], on=["sku", "date"], how="inner")
         out = df[["sku", "date", "open"]].copy()
@@ -135,7 +136,8 @@ class Forecaster:
         for name, b in self.boosters.items():
             b.save_model(str(path / f"{name}.txt"))
         meta = {
-            "params": {**self.params, "cap_q": self.cap_q}, "num_rounds": self.num_rounds, "quantiles": list(self.quantiles),
+            "params": {**self.params, "cap_q": self.cap_q}, "num_rounds": self.num_rounds,
+            "quantiles": list(self.quantiles),
             "sku_codes": self.sku_codes, "caps": self.caps.to_dict(),
             "train_end": str(self.train_end.date()), "features": FEATURES,
         }

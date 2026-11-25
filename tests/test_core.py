@@ -97,3 +97,21 @@ def test_backtest_runs(panel):
     assert len(folds) == 2
     s = summarize(preds)
     assert set(s["wape_by_horizon"]) == set(range(1, HORIZON + 1))
+
+
+def test_monitor_flags_a_demand_shift():
+    from almanac.monitor import replay
+
+    from .conftest import make_panel
+
+    clean = replay(make_panel(n_skus=20), weeks=4, params={"num_rounds": 150})
+    assert all(w["status"] == "ok" for w in clean["weeks"]), "no false alarms on stable demand"
+
+    shifted = make_panel(n_skus=20)
+    late = shifted["date"] > shifted["date"].max() - pd.Timedelta(days=28)
+    shifted.loc[late, "units"] *= 4
+    rep = replay(shifted, weeks=4, params={"num_rounds": 150})
+    assert len(rep["weeks"]) == 4
+    assert rep["weeks"][0]["features_alerting"] < 3
+    assert rep["weeks"][-1]["status"] == "alert"
+    assert rep["recommendation"] == "retrain"
