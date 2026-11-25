@@ -16,7 +16,7 @@ import mlflow
 import numpy as np
 import pandas as pd
 
-from .config import EXPERIMENT, HORIZON, PANEL, REPORTS, TRACKING_URI
+from .config import EXPERIMENT, HORIZON, PANEL, REPORTS, SITE_DATA, TRACKING_URI
 from .drift import accuracy_status, calibrate_thresholds, feature_drift
 from .features import CALENDAR
 from .metrics import bias, wape
@@ -129,6 +129,8 @@ def main(argv=None) -> None:
 
     REPORTS.mkdir(exist_ok=True)
     (REPORTS / "monitoring.json").write_text(json.dumps(report, indent=2, default=_np))
+    SITE_DATA.mkdir(parents=True, exist_ok=True)
+    (SITE_DATA / "monitoring.json").write_text((REPORTS / "monitoring.json").read_text())
     for w in report["weeks"]:
         print(f"{w['week_start']}  wape {w['wape']:.3f} (ma28 {w['baseline_wape']:.3f})  "
               f"drifting {w['features_alerting']:2d}  {w['status']}")

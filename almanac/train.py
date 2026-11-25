@@ -19,7 +19,7 @@ import pandas as pd
 from mlflow.tracking import MlflowClient
 
 from .backtest import run_backtest, summarize
-from .config import EXPERIMENT, HORIZON, MODEL_DIR, PANEL, REGISTERED_MODEL, REPORTS, TRACKING_URI
+from .config import EXPERIMENT, HORIZON, MODEL_DIR, PANEL, REGISTERED_MODEL, REPORTS, SITE_DATA, TRACKING_URI
 from .models import Forecaster
 
 
@@ -98,6 +98,8 @@ def main(argv=None) -> None:
         "daily": daily_series(preds),
     }
     (REPORTS / "backtest.json").write_text(json.dumps(report, indent=2, default=str))
+    SITE_DATA.mkdir(parents=True, exist_ok=True)
+    (SITE_DATA / "backtest.json").write_text((REPORTS / "backtest.json").read_text())
     print(f"registered {REGISTERED_MODEL} v{version} as {alias}; "
           f"backtest WAPE {summary['lgbm_wape']:.3f} (best baseline "
           f"{min(summary['seasonal_naive_wape'], summary['moving_avg_wape']):.3f})")

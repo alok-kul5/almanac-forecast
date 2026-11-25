@@ -5,6 +5,7 @@ RAW_CSV = ROOT / "data" / "raw" / "online_retail_ii.csv"
 PANEL = ROOT / "data" / "processed" / "panel.parquet"
 MODEL_DIR = ROOT / "models" / "champion"
 REPORTS = ROOT / "reports"
+SITE_DATA = ROOT / "docs" / "data"  # the GitHub Pages report reads copies from here
 TRACKING_URI = f"sqlite:///{(ROOT / 'mlruns.db').as_posix()}"
 EXPERIMENT = "almanac-demand"
 REGISTERED_MODEL = "almanac-demand"
